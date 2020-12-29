@@ -68,9 +68,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-    .connect(
-        'mongodb+srv://CyberStorm:GllJ1sLj160Ejnve@cyberstormcluster.wg8yv.mongodb.net/CyberStorm?retryWrites=true&w=majority'
-    )
+    .connect(process.env.DB_CONNECT)
     .then((result) => {
         app.listen(8080);
     })
