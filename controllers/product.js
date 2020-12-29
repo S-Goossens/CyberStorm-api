@@ -4,7 +4,6 @@ const path = require('path');
 const { validationResult } = require('express-validator');
 
 const Product = require('../models/product');
-const product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
     Product.find()

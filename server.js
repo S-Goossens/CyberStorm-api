@@ -10,6 +10,7 @@ require('dotenv').config();
 
 // require routes
 const productRoutes = require('./routes/product');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use((req, res, next) => {
 
 //app.use routes
 app.use('/products', productRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
     console.log(error);
