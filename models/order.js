@@ -13,10 +13,10 @@ const orderSchema = new Schema(
             ref: "Address",
             required: true,
         },
-        products: [
+        orderLines: [
             {
                 type: mongoose.Types.ObjectId,
-                ref: "Product",
+                ref: "OrderLine",
             },
         ],
         totalPrice: {

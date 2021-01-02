@@ -1,15 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const { validationResult } = require('express-validator');
+const { validationResult } = require("express-validator");
 
-const Product = require('../models/product');
+const Product = require("../models/product");
 
 exports.getProducts = (req, res, next) => {
     Product.find()
         .then((products) => {
+            products = generateImageUrl(req, products);
             res.status(200).json({
-                message: 'Fetched products succesfully.',
+                message: "Fetched products succesfully.",
                 products: products,
             });
         })
@@ -30,18 +31,18 @@ exports.getProducts = (req, res, next) => {
 exports.createProduct = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect');
+        const error = new Error("Validation failed, entered data is incorrect");
         error.statusCode = 422;
         throw error;
     }
     if (!req.file) {
-        const error = new Error('No image provided');
+        const error = new Error("No image provided");
         error.statusCode = 422;
         throw error;
     }
 
     const name = req.body.name;
-    const imgPath = req.file.path.replace('\\', '/');
+    const imgPath = req.file.path.replace("\\", "/");
     const description = req.body.description;
     const price = req.body.price;
     const type = req.body.type;
@@ -58,7 +59,7 @@ exports.createProduct = (req, res, next) => {
         .save()
         .then((result) => {
             res.status(201).json({
-                message: 'Product created succesfully',
+                message: "Product created succesfully",
                 product: product,
             });
         })
@@ -75,12 +76,13 @@ exports.getProduct = (req, res, next) => {
     Product.findById(productId)
         .then((product) => {
             if (!product) {
-                const error = new Error('Could not find product');
+                const error = new Error("Could not find product");
                 error.statusCode = 404;
                 throw error;
             }
+            product = generateImageUrl(req, [product]);
             res.status(200).json({
-                message: 'Product fetched.',
+                message: "Product fetched.",
                 product: product,
             });
         })
@@ -97,7 +99,7 @@ exports.updateProduct = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const error = new Error(
-            'Validation failed, entered data is incorrect.'
+            "Validation failed, entered data is incorrect."
         );
         error.statusCode = 422;
         throw error;
@@ -108,17 +110,17 @@ exports.updateProduct = (req, res, next) => {
     const type = req.body.type;
     let imgPath = req.body.image;
     if (req.file) {
-        imgPath = req.file.path.replace('\\', '/');
+        imgPath = req.file.path.replace("\\", "/");
     }
     if (!imgPath) {
-        const error = new Error('No file picked.');
+        const error = new Error("No file picked.");
         error.statusCode = 422;
         throw error;
     }
     Product.findById(productId)
         .then((product) => {
             if (!product) {
-                const error = new Error('Could not find product.');
+                const error = new Error("Could not find product.");
                 error.statusCode = 404;
                 throw error;
             }
@@ -134,7 +136,7 @@ exports.updateProduct = (req, res, next) => {
         })
         .then((result) => {
             res.status(200).json({
-                message: 'Product updated!',
+                message: "Product updated!",
                 product: result,
             });
         })
@@ -151,7 +153,7 @@ exports.deleteProduct = (req, res, next) => {
     Product.findById(productId)
         .then((product) => {
             if (!product) {
-                const error = new Error('Could not find product.');
+                const error = new Error("Could not find product.");
                 error.statusCode = 404;
                 throw error;
             }
@@ -159,7 +161,7 @@ exports.deleteProduct = (req, res, next) => {
             return Product.findByIdAndRemove(productId);
         })
         .then((result) => {
-            res.status(200).json({ message: 'Deleted post.' });
+            res.status(200).json({ message: "Deleted post." });
         })
         .catch((err) => {
             if (!err.statusCode) {
@@ -170,6 +172,18 @@ exports.deleteProduct = (req, res, next) => {
 };
 
 const clearImage = (filePath) => {
-    filePath = path.join(__dirname, '..', filePath);
+    filePath = path.join(__dirname, "..", filePath);
     fs.unlink(filePath, (err) => console.log(err));
+};
+
+const generateImageUrl = (req, products) => {
+    for (const product in products) {
+        products[product].imgPath =
+            req.protocol +
+            "://" +
+            req.get("host") +
+            "/" +
+            products[product].imgPath;
+    }
+    return products;
 };
