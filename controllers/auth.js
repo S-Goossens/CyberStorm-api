@@ -28,9 +28,14 @@ exports.signup = (req, res, next) => {
             return user.save();
         })
         .then((result) => {
+            const token = generateToken(result.email, result._id.toString());
+
             res.status(201).json({
                 message: "User created!",
+                email: result.email,
                 userId: result._id,
+                _token: token,
+                expirationTime: 60 * 60,
             });
         })
         .catch((err) => {
@@ -64,15 +69,11 @@ exports.login = (req, res, next) => {
                 error.statusCode = 401;
                 throw error;
             }
-            const token = jwt.sign(
-                {
-                    email: loadedUser.email,
-                    userId: loadedUser._id.toString(),
-                },
-                process.env.TOKEN_PRIV,
-                { expiresIn: "1h" }
+            const token = generateToken(
+                loadedUser.email,
+                loadedUser._id.toString()
             );
-            //todo: return expirationtime as well
+
             res.status(200).json({
                 email: loadedUser.email,
                 userId: loadedUser._id.toString(),
@@ -86,4 +87,15 @@ exports.login = (req, res, next) => {
             }
             next(err);
         });
+};
+
+generateToken = (email, userId) => {
+    return jwt.sign(
+        {
+            email: email,
+            userId: userId,
+        },
+        process.env.TOKEN_PRIV,
+        { expiresIn: "1h" }
+    );
 };
