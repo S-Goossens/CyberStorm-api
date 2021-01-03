@@ -74,9 +74,10 @@ exports.login = (req, res, next) => {
             );
             //todo: return expirationtime as well
             res.status(200).json({
-                token: token,
-                userId: loadedUser._id.toString(),
                 email: loadedUser.email,
+                userId: loadedUser._id.toString(),
+                token: token,
+                expirationTime: 60 * 60,
             });
         })
         .catch((err) => {
