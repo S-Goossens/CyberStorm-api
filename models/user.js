@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
@@ -18,23 +18,17 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
-    defaultAddress: {
+    address: {
         type: Schema.Types.ObjectId,
-        ref: 'Address',
-        required: false,
+        ref: "Address",
+        required: true,
     },
-    addresses: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'Address',
-        },
-    ],
     orders: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'Order',
+            ref: "Order",
         },
     ],
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

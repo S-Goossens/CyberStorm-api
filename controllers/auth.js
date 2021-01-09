@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
+const Address = require("../models/address");
 
 exports.signup = (req, res, next) => {
     const errors = validationResult(req);
@@ -16,16 +17,28 @@ exports.signup = (req, res, next) => {
     const password = req.body.password;
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
+    const addressLine = JSON.parse(req.body.address);
     bcrypt
         .hash(password, 12)
         .then((hashedPw) => {
-            const user = new User({
-                email,
-                password: hashedPw,
-                firstName,
-                lastName,
+            let address = new Address({
+                street: addressLine.street,
+                number: addressLine.number,
+                postalCode: addressLine.postalCode,
+                city: addressLine.city,
+                region: addressLine.region,
+                country: addressLine.country,
             });
-            return user.save();
+            return address.save().then((result) => {
+                const user = new User({
+                    email,
+                    password: hashedPw,
+                    firstName,
+                    lastName,
+                    address: result._id,
+                });
+                return user.save();
+            });
         })
         .then((result) => {
             const token = generateToken(result.email, result._id.toString());
@@ -34,6 +47,7 @@ exports.signup = (req, res, next) => {
                 message: "User created!",
                 email: result.email,
                 userId: result._id,
+                address: result.address,
                 _token: token,
                 expirationTime: 60 * 60,
             });
@@ -52,6 +66,7 @@ exports.login = (req, res, next) => {
     let loadedUser;
 
     User.findOne({ email: email })
+        .populate("address")
         .then((user) => {
             if (!user) {
                 const error = new Error(
@@ -77,6 +92,7 @@ exports.login = (req, res, next) => {
             res.status(200).json({
                 email: loadedUser.email,
                 userId: loadedUser._id.toString(),
+                address: loadedUser.address,
                 token: token,
                 expirationTime: 60 * 60,
             });
