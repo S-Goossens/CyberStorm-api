@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { stringify } = require("uuid");
 const Schema = mongoose.Schema;
 
 const orderSchema = new Schema(
@@ -21,6 +22,10 @@ const orderSchema = new Schema(
         ],
         totalPrice: {
             type: Number,
+            required: true,
+        },
+        status: {
+            type: String,
             required: true,
         },
     },

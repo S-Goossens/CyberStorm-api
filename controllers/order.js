@@ -16,6 +16,7 @@ exports.createOrder = async (req, res, next) => {
     const address = req.body.address;
     const cart = JSON.parse(req.body.cart);
     const totalPrice = req.body.totalPrice;
+    const status = req.body.status | "pending";
 
     const orderLines = await saveOrderLines(cart);
 
@@ -31,6 +32,7 @@ exports.createOrder = async (req, res, next) => {
                 address: address,
                 orderLines: orderLines,
                 totalPrice: totalPrice,
+                status: status,
             });
             order
                 .save()
@@ -64,6 +66,7 @@ exports.getOrders = (req, res, next) => {
             throw error;
         }
         Order.find({ userId: user._id })
+            .populate("address")
             .then((result) => {
                 res.status(200).json({
                     message: "Orders fetched succesfully.",
