@@ -95,6 +95,7 @@ exports.login = (req, res, next) => {
                 address: loadedUser.address,
                 token: token,
                 expirationTime: 60 * 60,
+                isAdmin: loadedUser.isAdmin,
             });
         })
         .catch((err) => {

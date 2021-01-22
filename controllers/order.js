@@ -65,8 +65,14 @@ exports.getOrders = (req, res, next) => {
             error.statusCode = 401;
             throw error;
         }
-        Order.find({ userId: user._id })
-            .populate("address")
+        Order.find()
+            .populate([
+                {
+                    path: "orderLines",
+                    populate: { path: "product", model: "Product" },
+                },
+                "address",
+            ])
             .then((result) => {
                 res.status(200).json({
                     message: "Orders fetched succesfully.",

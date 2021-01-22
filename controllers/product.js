@@ -8,7 +8,7 @@ const Product = require("../models/product");
 exports.getProducts = (req, res, next) => {
     Product.find()
         .then((products) => {
-            products = generateImageUrl(req, products);
+            // products = generateImageUrl(req, products);
             res.status(200).json({
                 message: "Fetched products succesfully.",
                 products: products,
@@ -35,14 +35,9 @@ exports.createProduct = (req, res, next) => {
         error.statusCode = 422;
         throw error;
     }
-    if (!req.file) {
-        const error = new Error("No image provided");
-        error.statusCode = 422;
-        throw error;
-    }
 
     const name = req.body.name;
-    const imgPath = req.file.path.replace("\\", "/");
+    const imgPath = req.body.imgPath;
     const description = req.body.description;
     const price = req.body.price;
     const type = req.body.type;
@@ -80,7 +75,7 @@ exports.getProduct = (req, res, next) => {
                 error.statusCode = 404;
                 throw error;
             }
-            product = generateImageUrl(req, [product]);
+            // product = generateImageUrl(req, [product]);
             res.status(200).json({
                 message: "Product fetched.",
                 product: product,
@@ -108,24 +103,14 @@ exports.updateProduct = (req, res, next) => {
     const description = req.body.description;
     const price = req.body.price;
     const type = req.body.type;
-    let imgPath = req.body.image;
-    if (req.file) {
-        imgPath = req.file.path.replace("\\", "/");
-    }
-    if (!imgPath) {
-        const error = new Error("No file picked.");
-        error.statusCode = 422;
-        throw error;
-    }
+    const imgPath = req.body.imgPath;
+
     Product.findById(productId)
         .then((product) => {
             if (!product) {
                 const error = new Error("Could not find product.");
                 error.statusCode = 404;
                 throw error;
-            }
-            if (imgPath !== product.imgPath) {
-                clearImage(product.imgPath);
             }
             product.name = name;
             product.imgPath = imgPath;
@@ -157,11 +142,10 @@ exports.deleteProduct = (req, res, next) => {
                 error.statusCode = 404;
                 throw error;
             }
-            clearImage(product.imgPath);
             return Product.findByIdAndRemove(productId);
         })
         .then((result) => {
-            res.status(200).json({ message: "Deleted post." });
+            res.status(200).json({ message: "Deleted product." });
         })
         .catch((err) => {
             if (!err.statusCode) {
@@ -171,19 +155,19 @@ exports.deleteProduct = (req, res, next) => {
         });
 };
 
-const clearImage = (filePath) => {
-    filePath = path.join(__dirname, "..", filePath);
-    fs.unlink(filePath, (err) => console.log(err));
-};
+// const clearImage = (filePath) => {
+//     filePath = path.join(__dirname, "..", filePath);
+//     fs.unlink(filePath, (err) => console.log(err));
+// };
 
-const generateImageUrl = (req, products) => {
-    for (const product in products) {
-        products[product].imgPath =
-            req.protocol +
-            "://" +
-            req.get("host") +
-            "/" +
-            products[product].imgPath;
-    }
-    return products;
-};
+// const generateImageUrl = (req, products) => {
+//     for (const product in products) {
+//         products[product].imgPath =
+//             req.protocol +
+//             "://" +
+//             req.get("host") +
+//             "/" +
+//             products[product].imgPath;
+//     }
+//     return products;
+// };
