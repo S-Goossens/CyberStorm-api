@@ -16,7 +16,10 @@ exports.createOrder = async (req, res, next) => {
     const address = req.body.address;
     const cart = JSON.parse(req.body.cart);
     const totalPrice = req.body.totalPrice;
-    const status = req.body.status | "pending";
+    let status = req.body.status;
+    if (!status) {
+        status = "pending";
+    }
 
     const orderLines = await saveOrderLines(cart);
 
@@ -58,10 +61,66 @@ exports.createOrder = async (req, res, next) => {
         });
 };
 
+exports.updateOrder = (req, res, next) => {
+    const orderId = req.params.orderId;
+    const totalPrice = req.body.totalPrice;
+    let status = req.body.status;
+    if (!status) {
+        status = "pending";
+    }
+
+    Order.findById(orderId)
+        .then((order) => {
+            if (!order) {
+                const error = new Error("Could not find order.");
+                error.statusCode = 404;
+                throw error;
+            }
+            order.totalPrice = totalPrice;
+            order.status = status;
+            return order.save();
+        })
+        .then((result) => {
+            res.status(200).json({
+                message: "Order updated!",
+                order: result,
+            });
+        })
+        .catch((err) => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        });
+};
+
+exports.getOrder = (req, res, next) => {
+    const orderId = req.params.orderId;
+
+    Order.findById(orderId)
+        .then((order) => {
+            if (!order) {
+                const error = new Error("Could not find order");
+                error.statusCode = 404;
+                throw error;
+            }
+            res.status(200).json({
+                message: "Order fetched.",
+                order: order,
+            });
+        })
+        .catch((err) => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        });
+};
+
 exports.getOrders = (req, res, next) => {
     User.findById(req.userId).then((user) => {
         if (!user) {
-            const error = new Error("User not found.");
+            const error = new Error("Order not found.");
             error.statusCode = 401;
             throw error;
         }
@@ -86,6 +145,28 @@ exports.getOrders = (req, res, next) => {
                 next(err);
             });
     });
+};
+
+exports.deleteOrder = (req, res, next) => {
+    const orderId = req.params.orderId;
+    Order.findById(orderId)
+        .then((order) => {
+            if (!order) {
+                const error = new Error("Could not find order.");
+                error.statusCode = 404;
+                throw error;
+            }
+            return Order.findByIdAndRemove(orderId);
+        })
+        .then((result) => {
+            res.status(200).json({ message: "Deleted order." });
+        })
+        .catch((err) => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        });
 };
 
 saveOrderLines = async (cart) => {
