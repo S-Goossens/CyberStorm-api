@@ -16,12 +16,15 @@ const orderRoutes = require("./routes/order");
 const app = express();
 
 app.use(bodyParser.json());
-
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", [
+    var allowedDomains = [
         "http://localhost:4200",
         "https://kneiterlegitiem.nl",
-    ]);
+    ];
+    var origin = req.headers.origin;
+    if (allowedDomains.indexOf(origin) > -1) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+    }
     res.setHeader(
         "Access-Control-Allow-Headers",
         "Content-Type, Authorization, X-Requested-With, Origin, Accept"
