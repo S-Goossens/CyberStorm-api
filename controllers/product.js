@@ -29,6 +29,12 @@ exports.getProducts = (req, res, next) => {
  * @param {*} next
  */
 exports.createProduct = (req, res, next) => {
+    if (!req.isAdmin) {
+        const error = new Error("Unauthorized");
+        error.statusCode = 403;
+        throw error;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const error = new Error("Validation failed, entered data is incorrect");
@@ -90,6 +96,12 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.updateProduct = (req, res, next) => {
+    if (!req.isAdmin) {
+        const error = new Error("Unauthorized");
+        error.statusCode = 403;
+        throw error;
+    }
+
     const productId = req.params.productId;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -134,6 +146,11 @@ exports.updateProduct = (req, res, next) => {
 };
 
 exports.deleteProduct = (req, res, next) => {
+    if (!req.isAdmin) {
+        const error = new Error("Unauthorized");
+        error.statusCode = 403;
+        throw error;
+    }
     const productId = req.params.productId;
     Product.findById(productId)
         .then((product) => {

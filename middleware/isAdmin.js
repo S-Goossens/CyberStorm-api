@@ -9,11 +9,11 @@ module.exports = async (req, res, next) => {
                 error.statusCode = 401;
                 throw error;
             }
-            if (!user.isAdmin) {
-                const error = new Error("Unauthorized");
-                error.statusCode = 403;
-                throw error;
-            }
+            // if (!user.isAdmin) {
+            //     const error = new Error("Unauthorized");
+            //     error.statusCode = 403;
+            //     throw error;
+            // }
             req.isAdmin = user.isAdmin;
         });
         next();

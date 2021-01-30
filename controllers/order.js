@@ -62,6 +62,11 @@ exports.createOrder = async (req, res, next) => {
 };
 
 exports.updateOrder = (req, res, next) => {
+    if (!req.isAdmin) {
+        const error = new Error("Unauthorized");
+        error.statusCode = 403;
+        throw error;
+    }
     const orderId = req.params.orderId;
     const totalPrice = req.body.totalPrice;
     let status = req.body.status;
@@ -120,34 +125,63 @@ exports.getOrder = (req, res, next) => {
 exports.getOrders = (req, res, next) => {
     User.findById(req.userId).then((user) => {
         if (!user) {
-            const error = new Error("Order not found.");
+            const error = new Error("User not found.");
             error.statusCode = 401;
             throw error;
         }
-        Order.find()
-            .populate([
-                {
-                    path: "orderLines",
-                    populate: { path: "product", model: "Product" },
-                },
-                "address",
-            ])
-            .then((result) => {
-                res.status(200).json({
-                    message: "Orders fetched succesfully.",
-                    orders: result,
+        if (req.isAdmin) {
+            Order.find()
+                .populate([
+                    {
+                        path: "orderLines",
+                        populate: { path: "product", model: "Product" },
+                    },
+                    "address",
+                ])
+                .then((result) => {
+                    res.status(200).json({
+                        message: "Orders fetched succesfully.",
+                        orders: result,
+                    });
+                })
+                .catch((err) => {
+                    if (!err.statusCode) {
+                        err.statusCode = 500;
+                    }
+                    next(err);
                 });
-            })
-            .catch((err) => {
-                if (!err.statusCode) {
-                    err.statusCode = 500;
-                }
-                next(err);
-            });
+        } else {
+            Order.find()
+                .where("userId", req.userId)
+                .populate([
+                    {
+                        path: "orderLines",
+                        populate: { path: "product", model: "Product" },
+                    },
+                    "address",
+                ])
+                .then((result) => {
+                    res.status(200).json({
+                        message: "Orders fetched succesfully.",
+                        orders: result,
+                    });
+                })
+                .catch((err) => {
+                    if (!err.statusCode) {
+                        err.statusCode = 500;
+                    }
+                    next(err);
+                });
+        }
     });
 };
 
 exports.deleteOrder = (req, res, next) => {
+    if (!req.isAdmin) {
+        const error = new Error("Unauthorized");
+        error.statusCode = 403;
+        throw error;
+    }
     const orderId = req.params.orderId;
     Order.findById(orderId)
         .then((order) => {
